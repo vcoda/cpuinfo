@@ -16,12 +16,15 @@ void printProcessorSignature(const x86ProcessorSignature& signature)
     printLn("Extended family ID", signature.extendedFamilyId);
 }
 
-void printProcessorMiscInfo(const x86ProcessorMiscInfo& info)
+void printProcessorMiscInfo(const x86ProcessorMiscInfo& info, bool isAMD)
 {
     printLn("Brand ID", info.brandIndex);
     printLn("Cache line flush size", info.cacheLineFlushSize);
-    printLn("Logical processor count", info.logicalProcessorCount);
-    printLn("Local APIC ID", info.localApicId);
+    if (isAMD)
+        printLn("Logical processor count", info.maxAddressableIdsForLogicalProcessors);
+    else // https://stackoverflow.com/questions/24088837/logical-cpu-count-return-16-instead-of-4
+        printLn("Max addressable IDs for logical processors", info.maxAddressableIdsForLogicalProcessors);
+    printLn("Default APIC ID", info.defaultApicId);
 }
 
 void printProcessorFeatures(const x86ProcessorFeatures& features)
@@ -315,6 +318,8 @@ int main()
     std::cout << "Processor information utility v. 1.0" << std::endl;
 
     const x86ProcessorInfo info = getProcessorInfo();
+    const bool isAMD = (x86VendorId::AMD == info.vendorId);
+
     printHeading("Processor Vendor");
     std::cout << "Vendor: " << info.vendor << std::endl;
     std::cout << "Brandname: " << info.brand << std::endl;
@@ -324,7 +329,8 @@ int main()
     printProcessorSignature(info.signature);
 
     printHeading("Processor Misc Information");
-    printProcessorMiscInfo(info.misc);
+    setFieldWidth(45);
+    printProcessorMiscInfo(info.misc, isAMD);
 
     printHeading("Processor Features");
     setFieldWidth(35);

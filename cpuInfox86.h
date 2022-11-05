@@ -36,10 +36,10 @@ union x86ProcessorMiscInfo
 {
     struct
     {
-        uint32_t brandIndex: 8;             // bits 7:0
-        uint32_t cacheLineFlushSize: 8;     // bits 15:8
-        uint32_t logicalProcessorCount: 8;  // bits 23:16
-        uint32_t localApicId: 8;            // bits 31:24
+        uint32_t brandIndex: 8;                                 // bits 7:0
+        uint32_t cacheLineFlushSize: 8;                         // bits 15:8
+        uint32_t maxAddressableIdsForLogicalProcessors: 8;      // bits 23:16   (Former use: number of logical processors per physical processor)
+        uint32_t defaultApicId: 8;                              // bits 31:24
     };
 
     uint32_t ebx;
