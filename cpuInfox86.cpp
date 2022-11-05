@@ -3,14 +3,12 @@
 #include <unordered_map>
 #include "cpuInfox86.h"
 
-enum
-{
-    Eax = 0, Ebx, Ecx, Edx
-};
-
 struct CpuId
 {
-    int reg[4];
+    int eax;
+    int ebx;
+    int ecx;
+    int edx;
 };
 
 x86ProcessorInfo getProcessorInfo()
@@ -24,12 +22,12 @@ x86ProcessorInfo getProcessorInfo()
     };
     x86ProcessorInfo cpuInfo = {};
     CpuId cpuId;
-    __cpuid(cpuId.reg, 0);
+    __cpuid(&cpuId.eax, 0);
     int vendor[3];
     // A twelve-character ASCII string stored in ebx, edx, ecx
-    vendor[0] = cpuId.reg[Ebx];
-    vendor[1] = cpuId.reg[Edx];
-    vendor[2] = cpuId.reg[Ecx];
+    vendor[0] = cpuId.ebx;
+    vendor[1] = cpuId.edx;
+    vendor[2] = cpuId.ecx;
     memcpy(cpuInfo.vendor, vendor, sizeof(vendor));
     auto it = std::find_if(vendorIds.begin(), vendorIds.end(),
         [&cpuInfo](auto& pair)
@@ -38,18 +36,18 @@ x86ProcessorInfo getProcessorInfo()
         });
     if (it != vendorIds.end())
         cpuInfo.vendorId = it->second;
-    const int numIds = cpuId.reg[Eax];
+    const int numIds = cpuId.eax;
     std::vector<CpuId> cpuIds(numIds);
     for (int i = 0; i < numIds; ++i)
-        __cpuidex(cpuIds[i].reg, i, 0);
+        __cpuidex(&cpuIds[i].eax, i, 0);
     if (numIds >= 1)
     {   // Signature of a CPU
-        cpuInfo.signature.eax = cpuIds[1].reg[Eax];
+        cpuInfo.signature.eax = cpuIds[1].eax;
         // Additional info
-        cpuInfo.misc.ebx = cpuIds[1].reg[Ebx];
+        cpuInfo.misc.ebx = cpuIds[1].ebx;
         // Processor feature flags
-        cpuInfo.features.edx = cpuIds[1].reg[Edx];
-        cpuInfo.features.ecx = cpuIds[1].reg[Ecx];
+        cpuInfo.features.edx = cpuIds[1].edx;
+        cpuInfo.features.ecx = cpuIds[1].ecx;
     }
     if (numIds >= 4)
     {
@@ -58,44 +56,44 @@ x86ProcessorInfo getProcessorInfo()
     }
     if (numIds >= 6)
     {   // Thermal power management feature flags
-        cpuInfo.tpmFeatures.eax = cpuIds[6].reg[Eax];
-        cpuInfo.tpmFeatures.ebx = cpuIds[6].reg[Ebx];
-        cpuInfo.tpmFeatures.ecx = cpuIds[6].reg[Ecx];
+        cpuInfo.tpmFeatures.eax = cpuIds[6].eax;
+        cpuInfo.tpmFeatures.ebx = cpuIds[6].ebx;
+        cpuInfo.tpmFeatures.ecx = cpuIds[6].ecx;
     }
     if (numIds >= 7)
     {   // Extended feature flags
-        cpuInfo.extendedFeatures.ebx = cpuIds[7].reg[Ebx];
-        cpuInfo.extendedFeatures.ecx = cpuIds[7].reg[Ecx];
-        cpuInfo.extendedFeatures.edx = cpuIds[7].reg[Edx];
+        cpuInfo.extendedFeatures.ebx = cpuIds[7].ebx;
+        cpuInfo.extendedFeatures.ecx = cpuIds[7].ecx;
+        cpuInfo.extendedFeatures.edx = cpuIds[7].edx;
     }
-     __cpuid(cpuId.reg, 0x80000000); // Get highest valid extended ID
-    const int numIdsEx = cpuId.reg[Eax];
+     __cpuid(&cpuId.eax, 0x80000000); // Get highest valid extended ID
+    const int numIdsEx = cpuId.eax;
     std::vector<CpuId> cpuIdsEx;
     for (int i = 0x80000000; i <= numIdsEx; ++i)
     {
-        __cpuidex(cpuId.reg, i, 0);
+        __cpuidex(&cpuId.eax, i, 0);
         cpuIdsEx.push_back(cpuId);
     }
     const bool isAMD = (x86VendorId::AMD == cpuInfo.vendorId);
     if ((numIdsEx >= 0x80000001) && isAMD)
     {   // AMD processor extended feature flags
-        cpuInfo.featuresAMD.edx = cpuIdsEx[1].reg[Edx];
-        cpuInfo.featuresAMD.ecx = cpuIdsEx[1].reg[Ecx];
+        cpuInfo.featuresAMD.edx = cpuIdsEx[1].edx;
+        cpuInfo.featuresAMD.ecx = cpuIdsEx[1].ecx;
     }
     if (numIdsEx >= 0x80000004)
     {   // Interpret processor brand string if supported
-        memcpy(cpuInfo.brand, cpuIdsEx[2].reg, sizeof(CpuId) * 3);
+        memcpy(cpuInfo.brand, &cpuIdsEx[2], sizeof(CpuId) * 3);
     }
     if ((numIdsEx >= 0x80000005) && isAMD)
     {   // L1 Cache and TLB Identifiers
-        cpuInfo.l1CacheAMD.eax = cpuIdsEx[5].reg[Eax];
-        cpuInfo.l1CacheAMD.ebx = cpuIdsEx[5].reg[Ebx];
-        cpuInfo.l1CacheAMD.ecx = cpuIdsEx[5].reg[Ecx];
-        cpuInfo.l1CacheAMD.edx = cpuIdsEx[5].reg[Edx];
+        cpuInfo.l1CacheAMD.eax = cpuIdsEx[5].eax;
+        cpuInfo.l1CacheAMD.ebx = cpuIdsEx[5].ebx;
+        cpuInfo.l1CacheAMD.ecx = cpuIdsEx[5].ecx;
+        cpuInfo.l1CacheAMD.edx = cpuIdsEx[5].edx;
     }
     if (numIdsEx >= 0x80000006)
     {   // Extended L2 Cache Features
-        cpuInfo.l2Cache.ecx = cpuIdsEx[6].reg[Ecx];
+        cpuInfo.l2Cache.ecx = cpuIdsEx[6].ecx;
     }
     return cpuInfo;
 }
