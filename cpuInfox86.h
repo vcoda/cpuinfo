@@ -392,38 +392,30 @@ struct x86L1CacheAndTlbFeatures
 
 /* AMD L1 Cache and Translation Lookaside Buffer Features (Function 80000005h) */
 
-struct x86L1CacheAndTlbFeaturesAMD
+union x86L1CacheAndTlbFeaturesAMD
 {
-    struct L1Tlb
+    struct
     {
-        uint32_t instructionNumEntries: 8;          // bits 7:0
-        uint32_t instructionAssociativity: 8;       // bits 15:8
-        uint32_t dataNumEntries: 8;                 // bits 23:16
-        uint32_t dataAssociativity: 8;              // bits 31:24
+        struct L1Tlb
+        {
+            uint32_t instructionNumEntries: 8;      // bits 7:0
+            uint32_t instructionAssociativity: 8;   // bits 15:8
+            uint32_t dataNumEntries: 8;             // bits 23:16
+            uint32_t dataAssociativity: 8;          // bits 31:24
+        } tlb2And4M, tlb4K;
+
+        struct L1Cache
+        {
+            uint32_t lineSize: 8;                   // In bytes
+            uint32_t linesPerTag: 8;
+            uint32_t associativity: 8;              // x86CacheAssociativity
+            uint32_t cacheSize: 8;                  // In kilobytes
+        } dataCache, instructionCache;
     };
 
-    struct L1Cache
+    struct
     {
-        uint32_t lineSize: 8;                       // In bytes
-        uint32_t linesPerTag: 8;
-        uint32_t associativity: 8;                  // x86CacheAssociativity
-        uint32_t cacheSize: 8;                      // In kilobytes
-    };
-
-    union
-    {
-        struct
-        {
-            L1Tlb tlb2And4M;
-            L1Tlb tlb4K;
-            L1Cache dataCache;
-            L1Cache instructionCache;
-        };
-
-        struct
-        {
-            uint32_t eax, ebx, ecx, edx;
-        };
+        uint32_t eax, ebx, ecx, edx;
     };
 };
 
