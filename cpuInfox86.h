@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <vector>
 
 // Intel Processor Identification and the CPUID Instruction
 // Software Optimization Guide for AMD Family 17h Processors
@@ -376,24 +377,42 @@ enum class x86CacheAssociativity : uint8_t
     Fully = 0xFF // AMD
 };
 
-/* L1 Cache and Translation Lookaside Buffer Features (Function 00000004h) */
+/* L1 Cache and Translation Lookaside Buffer Features (Function 00000002h) */
 
-struct x86L1CacheAndTlbFeatures
+union x86L1CacheAndTlbFeatures
 {
-    union
-    {
-        struct
-        {
-            uint32_t notImplemented;
-            uint32_t notImplemented1;
-            uint32_t notImplemented2;
-            uint32_t notImplemented3;
-        };
+};
 
-        struct
-        {
-            uint32_t eax, ebx, ecx, edx;
-        };
+/* Intel Deterministic Cache Parameters (Function 00000004h) */
+
+union x86DeterministicCacheInfo
+{
+    struct
+    {  
+        // eax
+        uint32_t cacheType: 5;                              // bits 4:0
+        uint32_t cacheLevel: 3;                             // bits 7:5
+        uint32_t selfInitializingCacheLevel: 1;             // bit 8
+        uint32_t fullyAssociativeCache: 1;                  // bit 9
+        uint32_t reserved: 4;                               // bits 13:10
+        uint32_t maxAddressableIdsForLogicalProcessors: 12; // bits 25:14;
+        uint32_t maxAddressableIdsForProcessorCores: 6;     // bits 31:26
+        // ebx
+        uint32_t systemCoherencyLineSize: 12;               // bits 11:0
+        uint32_t physicalLinePartitions: 10;                // bits 21:12
+        uint32_t waysOfAssociativity: 10;                   // bits 31:22
+        // ecx
+        uint32_t numberOfSets: 32;                          // bits 31:0
+        // edx
+        uint32_t writeBackInvalidate: 1;                    // bit 0
+        uint32_t cacheInclusiveness: 1;                     // bit 1
+        uint32_t complexCacheIndexing: 1;                   // bit 2
+        uint32_t reserved2: 29;                             // bits 31:3
+    };
+
+    struct
+    {
+        uint32_t eax, ebx, ecx, edx;
     };
 };
 
@@ -453,6 +472,7 @@ struct x86ProcessorInfo
     x86ProcessorFeatures features;
     x86ProcessorFeaturesAMD featuresAMD;
     x86ProcessorFeaturesEx extendedFeatures;
+    std::vector<x86DeterministicCacheInfo> cacheInfos;
 
     union
     {
