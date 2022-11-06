@@ -36,6 +36,7 @@ x86ProcessorInfo getProcessorInfo()
         });
     if (it != vendorIds.end())
         cpuInfo.vendorId = it->second;
+    const bool isAMD = (x86VendorId::AMD == cpuInfo.vendorId);
     const int numIds = cpuId.eax;
     std::vector<CpuId> cpuIds(numIds);
     for (int i = 0; i < numIds; ++i)
@@ -49,10 +50,23 @@ x86ProcessorInfo getProcessorInfo()
         cpuInfo.features.edx = cpuIds[1].edx;
         cpuInfo.features.ecx = cpuIds[1].ecx;
     }
-    if (numIds >= 4)
-    {
-        // TODO: L1 cache info for Intel CPU
-        // https://stackoverflow.com/questions/14283171/how-to-receive-l1-l2-l3-cache-size-using-cpuid-instruction-in-x86
+    if (numIds >= 4 && !isAMD)
+    {   // Intel deterministic cache parameters
+        int ecx = 0;
+        while (true)
+        {
+            x86DeterministicCacheInfo cacheInfo;
+            __cpuidex(cacheInfo.reg, 4, ecx++);
+            if (!cacheInfo.cacheType)
+               break;
+            cacheInfo.maxAddressableIdsForLogicalProcessors += 1;
+            cacheInfo.maxAddressableIdsForProcessorCores += 1;
+            cacheInfo.systemCoherencyLineSize += 1;
+            cacheInfo.physicalLinePartitions += 1;
+            cacheInfo.waysOfAssociativity += 1;
+            cacheInfo.numSets += 1;
+            cpuInfo.cacheInfos.push_back(cacheInfo);
+        }
     }
     if (numIds >= 6)
     {   // Thermal power management feature flags
@@ -74,7 +88,6 @@ x86ProcessorInfo getProcessorInfo()
         __cpuidex(&cpuId.eax, i, 0);
         cpuIdsEx.push_back(cpuId);
     }
-    const bool isAMD = (x86VendorId::AMD == cpuInfo.vendorId);
     if ((numIdsEx >= 0x80000001) && isAMD)
     {   // AMD processor extended feature flags
         cpuInfo.featuresAMD.edx = cpuIdsEx[1].edx;

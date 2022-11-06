@@ -391,9 +391,9 @@ union x86DeterministicCacheInfo
     {  
         // eax
         uint32_t cacheType: 5;                              // bits 4:0
-        uint32_t cacheLevel: 3;                             // bits 7:5
-        uint32_t selfInitializingCacheLevel: 1;             // bit 8
-        uint32_t fullyAssociativeCache: 1;                  // bit 9
+        uint32_t level: 3;                                  // bits 7:5
+        uint32_t selfInitializing: 1;                       // bit 8
+        uint32_t fullyAssociative: 1;                       // bit 9
         uint32_t reserved: 4;                               // bits 13:10
         uint32_t maxAddressableIdsForLogicalProcessors: 12; // bits 25:14;
         uint32_t maxAddressableIdsForProcessorCores: 6;     // bits 31:26
@@ -402,17 +402,17 @@ union x86DeterministicCacheInfo
         uint32_t physicalLinePartitions: 10;                // bits 21:12
         uint32_t waysOfAssociativity: 10;                   // bits 31:22
         // ecx
-        uint32_t numberOfSets: 32;                          // bits 31:0
+        uint32_t numSets: 32;                               // bits 31:0
         // edx
         uint32_t writeBackInvalidate: 1;                    // bit 0
-        uint32_t cacheInclusiveness: 1;                     // bit 1
+        uint32_t inclusiveness: 1;                          // bit 1
         uint32_t complexCacheIndexing: 1;                   // bit 2
         uint32_t reserved2: 29;                             // bits 31:3
     };
 
     struct
     {
-        uint32_t eax, ebx, ecx, edx;
+        int32_t reg[4];
     };
 };
 
