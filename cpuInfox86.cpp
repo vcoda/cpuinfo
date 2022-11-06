@@ -117,3 +117,11 @@ static_assert(sizeof(x86ProcessorFeaturesAMD) == sizeof(uint32_t) * 2,
     "x86ProcessorFeaturesAMD structure size mismatch");
 static_assert(sizeof(x86ProcessorFeaturesEx) == sizeof(uint32_t) * 3,
     "x86ProcessorFeaturesEx structure size mismatch");
+static_assert(sizeof(x86DeterministicCacheInfo) == sizeof(uint32_t) * 4,
+    "x86DeterministicCacheInfo structure size mismatch");
+static_assert(sizeof(x86L1CacheAndTlbFeaturesAMD) == sizeof(uint32_t) * 4,
+    "x86L1CacheAndTlbFeaturesAMD structure size mismatch");
+static_assert(sizeof(x86ThermalPowerManagementFeatures) == sizeof(uint32_t) * 3,
+    "x86ThermalPowerManagementFeatures structure size mismatch");
+static_assert(sizeof(x86ThermalPowerManagementFeaturesAMD) == sizeof(uint32_t) * 3,
+    "x86ThermalPowerManagementFeaturesAMD structure size mismatch");
