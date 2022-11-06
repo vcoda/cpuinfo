@@ -63,7 +63,7 @@ x86ProcessorInfo getProcessorInfo()
             cacheInfo.maxAddressableIdsForProcessorCores += 1;
             cacheInfo.systemCoherencyLineSize += 1;
             cacheInfo.physicalLinePartitions += 1;
-            cacheInfo.waysOfAssociativity += 1;
+            cacheInfo.associativity += 1;
             cacheInfo.numSets += 1;
             cpuInfo.cacheInfos.push_back(cacheInfo);
         }

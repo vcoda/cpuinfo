@@ -400,7 +400,7 @@ union x86DeterministicCacheInfo
         // ebx
         uint32_t systemCoherencyLineSize: 12;               // bits 11:0
         uint32_t physicalLinePartitions: 10;                // bits 21:12
-        uint32_t waysOfAssociativity: 10;                   // bits 31:22
+        uint32_t associativity: 10;                         // bits 31:22
         // ecx
         uint32_t numSets: 32;                               // bits 31:0
         // edx

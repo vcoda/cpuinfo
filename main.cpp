@@ -289,14 +289,14 @@ void printDeterministicCacheInfo(const x86DeterministicCacheInfo& cache)
     printString("");
     printLn("System coherency line size", cache.systemCoherencyLineSize);
     printLn("Physical line partitions", cache.physicalLinePartitions);
-    printLn("Ways of associativity", cache.waysOfAssociativity);
+    printLn("Associativity", stringifyIntegerCacheAssociativity(cache.associativity));
     printLn("Number of sets", cache.numSets);
     printString("");
     printLn("Write-back invalidate/invalidate", booleanString(cache.writeBackInvalidate));
     printLn("Cache inclusiveness", booleanString(cache.inclusiveness));
     printLn("Complex cache indexing", !cache.complexCacheIndexing ? "Direct mapped" : "Complex function");
-    
-    const uint32_t cacheSizeInBytes = cache.waysOfAssociativity * cache.physicalLinePartitions * 
+
+    const uint32_t cacheSizeInBytes = cache.associativity * cache.physicalLinePartitions * 
         cache.systemCoherencyLineSize * cache.numSets;
 
     printString("");
