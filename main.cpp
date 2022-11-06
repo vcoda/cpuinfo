@@ -265,7 +265,20 @@ const char *stringifyCacheAssociativity(uint8_t associativity)
         return "Fully associative";
     default: return "Unknown";
     }
-};
+}
+
+const char *stringifyIntegerCacheAssociativity(uint8_t associativity)
+{
+    switch (associativity)
+    {
+    case 1: return "Direct mapped";
+    case 2: return "2-way";
+    case 4: return "4-way";
+    case 8: return "8-way";
+    case 16: return "16-way";
+    default: return "Unknown";
+    }
+}
 
 void printDeterministicCacheInfo(const x86DeterministicCacheInfo& cache)
 {
