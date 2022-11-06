@@ -258,7 +258,9 @@ const char *stringifyCacheAssociativity(uint8_t associativity)
     case x86CacheAssociativity::DirectMapped: return "Direct mapped";
     case x86CacheAssociativity::TwoWay: return "2-way";
     case x86CacheAssociativity::FourWay: return "4-way";
+    case x86CacheAssociativity::SixWay: return "6-way";
     case x86CacheAssociativity::EightWay: return "8-way";
+    case x86CacheAssociativity::TwelveWay: return "12-way";
     case x86CacheAssociativity::SixteenWay: return "16-way";
     case x86CacheAssociativity::Full:
     case x86CacheAssociativity::Fully:
@@ -274,7 +276,9 @@ const char *stringifyIntegerCacheAssociativity(uint8_t associativity)
     case 1: return "Direct mapped";
     case 2: return "2-way";
     case 4: return "4-way";
+    case 6: return "6-way";
     case 8: return "8-way";
+    case 12: return "12-way";
     case 16: return "16-way";
     default: return "Unknown";
     }

@@ -371,7 +371,9 @@ enum class x86CacheAssociativity : uint8_t
     DirectMapped = 0x1,
     TwoWay = 0x2,
     FourWay = 0x4,
+    SixWay = 0x5,
     EightWay = 0x6,
+    TwelveWay = 0x7,
     SixteenWay = 0x8,
     Full = 0xF,
     Fully = 0xFF // AMD
