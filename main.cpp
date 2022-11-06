@@ -282,16 +282,14 @@ const char *stringifyIntegerCacheAssociativity(uint8_t associativity)
 
 void printDeterministicCacheInfo(const x86DeterministicCacheInfo& cache)
 {
-    printLn("Type", stringifyCacheType(cache.cacheType));
-    printLn("Level", cache.level);
-    printLn("Self initializing", booleanString(cache.selfInitializing));
-    printLn("Fully associative", booleanString(cache.fullyAssociative));
-    printString("");
+    std::cout << stringifyCacheType(cache.cacheType) << " cache: " << std::endl << std::endl;
     printLn("System coherency line size", cache.systemCoherencyLineSize);
     printLn("Physical line partitions", cache.physicalLinePartitions);
     printLn("Associativity", stringifyIntegerCacheAssociativity(cache.associativity));
     printLn("Number of sets", cache.numSets);
     printString("");
+    printLn("Self initializing", booleanString(cache.selfInitializing));
+    printLn("Fully associative", booleanString(cache.fullyAssociative));
     printLn("Write-back invalidate/invalidate", booleanString(cache.writeBackInvalidate));
     printLn("Cache inclusiveness", booleanString(cache.inclusiveness));
     printLn("Complex cache indexing", !cache.complexCacheIndexing ? "Direct mapped" : "Complex function");
