@@ -357,6 +357,13 @@ union x86ThermalPowerManagementFeaturesAMD
     };
 };
 
+/* Cache Type */
+
+enum class x86CacheType : uint8_t
+{
+    Null, Data, Instruction, Unified
+};
+
 enum class x86CacheAssociativity : uint8_t
 {
     Reserved = 0x0,
