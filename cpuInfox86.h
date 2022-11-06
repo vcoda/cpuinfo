@@ -306,58 +306,6 @@ union x86ProcessorFeaturesEx
     };
 };
 
-/* Thermal Power Management (Function 00000006h) */
-
-union x86ThermalPowerManagementFeatures
-{
-    struct
-    {
-        uint32_t digitalThermalSensor: 1;                       // DTS
-        uint32_t turboBoost: 1;                                 // Intel Turbo Boost
-        uint32_t alwaysRunningApicTimer: 1;                     // ARAT
-        uint32_t reserved: 1;
-        uint32_t powerLimitNotification: 1;                     // PLN
-        uint32_t extendedClockModulationDuty: 1;                // ECMD
-        uint32_t packageTermalManagement: 1;                    // PTM
-        uint32_t reserved2: 25;                                 // bits 31:7
-
-        uint32_t numIterruptThresholds: 4;                      // bit 3:0
-        uint32_t reserved3: 28;                                 // bits 31:4
-
-        uint32_t hardwareCoordinationFeedback: 1;               // bit 0
-        uint32_t acnt2: 1;                                      // bit 1
-        uint32_t reserved4: 1;                                  // bit 2
-        uint32_t performanceEnergyBias: 1;                      // bit 3
-        uint32_t reserved5: 28;                                 // bits 31:4
-    };
-
-    struct
-    {
-        uint32_t eax, ebx, ecx;
-    };
-};
-
-/* AMD Thermal Power Management (Function 00000006h) */
-
-union x86ThermalPowerManagementFeaturesAMD
-{
-    struct
-    {
-        uint32_t reserved: 1;                                   // bit 0
-        uint32_t reserved1: 1;                                  // bit 1
-        uint32_t alwaysRunningApicTimer: 1;                     // ARAT
-        uint32_t reserved2: 29;                                 // bits 31:3
-        uint32_t reserved3: 32;                                 // bits 31:0
-        uint32_t effectiveFrequencyInterface: 1;                // bit 0
-        uint32_t reserved4: 31;                                 // bits 31:1
-    };
-
-    struct
-    {
-        uint32_t eax, ebx, ecx;
-    };
-};
-
 /* Cache Type */
 
 enum class x86CacheType : uint8_t
@@ -444,6 +392,58 @@ union x86L1CacheAndTlbFeaturesAMD
     struct
     {
         uint32_t eax, ebx, ecx, edx;
+    };
+};
+
+/* Thermal Power Management (Function 00000006h) */
+
+union x86ThermalPowerManagementFeatures
+{
+    struct
+    {
+        uint32_t digitalThermalSensor: 1;           // DTS
+        uint32_t turboBoost: 1;                     // Intel Turbo Boost
+        uint32_t alwaysRunningApicTimer: 1;         // ARAT
+        uint32_t reserved: 1;
+        uint32_t powerLimitNotification: 1;         // PLN
+        uint32_t extendedClockModulationDuty: 1;    // ECMD
+        uint32_t packageTermalManagement: 1;        // PTM
+        uint32_t reserved2: 25;                     // bits 31:7
+
+        uint32_t numIterruptThresholds: 4;          // bit 3:0
+        uint32_t reserved3: 28;                     // bits 31:4
+
+        uint32_t hardwareCoordinationFeedback: 1;   // bit 0
+        uint32_t acnt2: 1;                          // bit 1
+        uint32_t reserved4: 1;                      // bit 2
+        uint32_t performanceEnergyBias: 1;          // bit 3
+        uint32_t reserved5: 28;                     // bits 31:4
+    };
+
+    struct
+    {
+        uint32_t eax, ebx, ecx;
+    };
+};
+
+/* AMD Thermal Power Management (Function 00000006h) */
+
+union x86ThermalPowerManagementFeaturesAMD
+{
+    struct
+    {
+        uint32_t reserved: 1;                       // bit 0
+        uint32_t reserved1: 1;                      // bit 1
+        uint32_t alwaysRunningApicTimer: 1;         // bit 2        ARAT
+        uint32_t reserved2: 29;                     // bits 31:3
+        uint32_t reserved3: 32;                     // bits 31:0
+        uint32_t effectiveFrequencyInterface: 1;    // bit 0
+        uint32_t reserved4: 31;                     // bits 31:1
+    };
+
+    struct
+    {
+        uint32_t eax, ebx, ecx;
     };
 };
 
