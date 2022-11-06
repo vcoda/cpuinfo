@@ -1,3 +1,4 @@
+#include <functional>
 #include "cpuInfox86.h"
 #include "printUtils.h"
 
@@ -238,6 +239,17 @@ void printExtendedProcessorFeatures(const x86ProcessorFeaturesEx& features)
     printLn("Speculative Store Bypass Disable", booleanString(features.speculativeStoreBypassDisable));
 }
 
+const char *stringifyCacheType(uint8_t type)
+{
+    switch ((x86CacheType)type)
+    {
+    case x86CacheType::Data: return "Data";
+    case x86CacheType::Instruction: return "Instruction";
+    case x86CacheType::Unified: return "Unified";
+    default: return "Null";
+    }
+}
+
 const char *stringifyCacheAssociativity(uint8_t associativity)
 {
     switch ((x86CacheAssociativity)associativity)
@@ -254,6 +266,29 @@ const char *stringifyCacheAssociativity(uint8_t associativity)
     default: return "Unknown";
     }
 };
+
+void printDeterministicCacheInfo(const x86DeterministicCacheInfo& cache)
+{
+    printLn("Type", stringifyCacheType(cache.cacheType));
+    printLn("Level", cache.level);
+    printLn("Self initializing", booleanString(cache.selfInitializing));
+    printLn("Fully associative", booleanString(cache.fullyAssociative));
+    printString("");
+    printLn("System coherency line size", cache.systemCoherencyLineSize);
+    printLn("Physical line partitions", cache.physicalLinePartitions);
+    printLn("Ways of associativity", cache.waysOfAssociativity);
+    printLn("Number of sets", cache.numSets);
+    printString("");
+    printLn("Write-back invalidate/invalidate", booleanString(cache.writeBackInvalidate));
+    printLn("Cache inclusiveness", booleanString(cache.inclusiveness));
+    printLn("Complex cache indexing", !cache.complexCacheIndexing ? "Direct mapped" : "Complex function");
+    
+    const uint32_t cacheSizeInBytes = cache.waysOfAssociativity * cache.physicalLinePartitions * 
+        cache.systemCoherencyLineSize * cache.numSets;
+
+    printString("");
+    printLn("Cache size in kilobytes", cacheSizeInBytes/1024);
+}
 
 void printLevel1CacheAndTlbFeatures(const x86L1CacheAndTlbFeatures& l1Cache)
 {
@@ -313,6 +348,16 @@ void printThermalPowerManagementFeatures(const x86ThermalPowerManagementFeatures
     printLn("Effective Frequency Interface", booleanString(features.effectiveFrequencyInterface));
 }
 
+void forEachCacheLevel(uint32_t level, const x86ProcessorInfo& info,
+    std::function<void(const x86DeterministicCacheInfo& cacheInfo)> cbFn)
+{
+    for (const auto& cache: info.cacheInfos)
+    {
+        if (cache.level == level)
+            cbFn(cache);
+    }
+}
+
 int main()
 {
     std::cout << "Processor information utility v. 1.0" << std::endl;
@@ -348,9 +393,28 @@ int main()
         printLevel1CacheAndTlbFeatures(info.l1CacheAMD);
     else
         printLevel1CacheAndTlbFeatures(info.l1Cache);
+    forEachCacheLevel(1, info,
+        [](const x86DeterministicCacheInfo& cache)
+        {
+            printString("");
+            printDeterministicCacheInfo(cache);
+        });
 
     printHeading("L2 Cache Identifiers");
+    forEachCacheLevel(2, info,
+        [](const x86DeterministicCacheInfo& cache)
+        {
+            printDeterministicCacheInfo(cache);
+            printString("");
+        });
     printLevel2CacheFeatures(info.l2Cache);
+
+    printHeading("L3 Cache Identifiers");
+    forEachCacheLevel(3, info,
+        [](const x86DeterministicCacheInfo& cache)
+        {
+            printDeterministicCacheInfo(cache);
+        });
 
     printHeading("Thermal Power Management Features");
     if (x86VendorId::AMD == info.vendorId)
