@@ -238,9 +238,9 @@ void printExtendedProcessorFeatures(const x86ProcessorFeaturesEx& features)
     printLn("Speculative Store Bypass Disable", booleanString(features.speculativeStoreBypassDisable));
 }
 
-const char *stringifyCacheAssociativity(uint32_t associativity)
+const char *stringifyCacheAssociativity(uint8_t associativity)
 {
-    switch (associativity)
+    switch ((x86CacheAssociativity)associativity)
     {
     case x86CacheAssociativity::Reserved: return "Reserved";
     case x86CacheAssociativity::DirectMapped: return "Direct mapped";
