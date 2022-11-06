@@ -338,7 +338,7 @@ union x86L1CacheAndTlbFeatures
 union x86DeterministicCacheInfo
 {
     struct
-    {  
+    {
         // eax
         uint32_t cacheType: 5;                              // bits 4:0
         uint32_t level: 3;                                  // bits 7:5

@@ -298,7 +298,7 @@ void printDeterministicCacheInfo(const x86DeterministicCacheInfo& cache)
     printLn("Cache inclusiveness", booleanString(cache.inclusiveness));
     printLn("Complex cache indexing", !cache.complexCacheIndexing ? "Direct mapped" : "Complex function");
 
-    const uint32_t cacheSizeInBytes = cache.associativity * cache.physicalLinePartitions * 
+    const uint32_t cacheSizeInBytes = cache.associativity * cache.physicalLinePartitions *
         cache.systemCoherencyLineSize * cache.numSets;
 
     printString("");
