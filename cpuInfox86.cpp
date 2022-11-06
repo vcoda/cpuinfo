@@ -1,24 +1,26 @@
 #include <intrin.h>
-#include <algorithm>
-#include <unordered_map>
 #include "cpuInfox86.h"
 
 struct CpuId
 {
-    int eax;
-    int ebx;
-    int ecx;
-    int edx;
+    int eax, ebx, ecx, edx;
+};
+
+struct CpuVendor
+{
+    const char *name;
+    x86VendorId vendorId;
 };
 
 x86ProcessorInfo getProcessorInfo()
 {
-    const std::unordered_map<const char *, x86VendorId> vendorIds = {
+    const CpuVendor vendorIds[] = {
         {"GenuineIntel", x86VendorId::Intel},
         {"AuthenticAMD", x86VendorId::AMD},
         {"VIA VIA VIA ", x86VendorId::VIA},
         {"HygonGenuine", x86VendorId::Hygon},
-        {"  Shanghai  ", x86VendorId::Zhaoxin}
+        {"  Shanghai  ", x86VendorId::Zhaoxin},
+        {nullptr, x86VendorId::Unknown}
     };
     x86ProcessorInfo cpuInfo = {};
     CpuId cpuId;
@@ -29,13 +31,14 @@ x86ProcessorInfo getProcessorInfo()
     vendor[1] = cpuId.edx;
     vendor[2] = cpuId.ecx;
     memcpy(cpuInfo.vendor, vendor, sizeof(vendor));
-    auto it = std::find_if(vendorIds.begin(), vendorIds.end(),
-        [&cpuInfo](auto& pair)
+    for (auto it = vendorIds; it->vendorId != x86VendorId::Unknown; ++it)
+    {
+        if (0 == strcmp(cpuInfo.vendor, it->name))
         {
-            return strcmp(cpuInfo.vendor, pair.first) == 0;
-        });
-    if (it != vendorIds.end())
-        cpuInfo.vendorId = it->second;
+            cpuInfo.vendorId = it->vendorId;
+            break;
+        }
+    }
     const bool isAMD = (x86VendorId::AMD == cpuInfo.vendorId);
     const int numIds = cpuId.eax;
     std::vector<CpuId> cpuIds(numIds);
