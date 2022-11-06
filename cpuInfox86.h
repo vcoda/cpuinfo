@@ -476,7 +476,6 @@ struct x86ProcessorInfo
     x86ProcessorFeatures features;
     x86ProcessorFeaturesAMD featuresAMD;
     x86ProcessorFeaturesEx extendedFeatures;
-    std::vector<x86DeterministicCacheInfo> cacheInfos;
     union
     {
         x86ThermalPowerManagementFeatures tpmFeatures;
@@ -488,6 +487,7 @@ struct x86ProcessorInfo
         x86L1CacheAndTlbFeaturesAMD l1CacheAMD;
     };
     x86L2CacheFeatures l2Cache;
+    std::vector<x86DeterministicCacheInfo> cacheInfos;
 };
 
 /* */
