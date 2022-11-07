@@ -238,6 +238,29 @@ void printExtendedProcessorFeatures(const x86ProcessorFeaturesEx& features)
     printLn("Speculative Store Bypass Disable", booleanString(features.speculativeStoreBypassDisable));
 }
 
+void printAdvancedPowerManagementFeatures(const x86AdvancedPowerManagementFeatures& features, bool isAMD)
+{
+    if (isAMD)
+    {
+        printLn("Temperature Sensor", booleanString(features.amd.temperatureSensor));
+        printLn("Frequency ID Control", booleanString(features.amd.frequencyIdControl));
+        printLn("Voltage ID Control", booleanString(features.amd.voltageIdControl));
+        printLn("Thermal Trip", booleanString(features.amd.thermalTrip));
+        printLn("Hardware Thermal Control", booleanString(features.amd.hardwareThermalControl));
+        printLn("100 MHz Multiplier Control", booleanString(features.amd.oneHundredMhzStep));
+        printLn("Hardware P-state Control", booleanString(features.amd.hardwarePstateControl));
+        printLn("Invariant Timestamp Counter", booleanString(features.amd.invariantTimestampCounter));
+        printLn("Core Performance Boost", booleanString(features.amd.corePerformanceBoost));
+        printLn("Read-only Effective Frequency Interface", booleanString(features.amd.readOnlyEffectiveFrequencyInterface));
+        printLn("Processor Feedback Interface", booleanString(features.amd.processorFeedbackInterface));
+        printLn("Processor Power Reporting Interface", booleanString(features.amd.processorPowerReporting));
+    }
+    else
+    {
+        printLn("Invariant Timestamp Counter", booleanString(features.invariantTimestampCounter));
+    }
+}
+
 const char *stringifyCacheType(uint8_t type)
 {
     switch ((x86CacheType)type)
@@ -399,6 +422,9 @@ int main()
     printHeading("Extended Processor Features");
     setFieldWidth(50);
     printExtendedProcessorFeatures(info.extendedFeatures);
+
+    printHeading("Advanced Power Management Features");
+    printAdvancedPowerManagementFeatures(info.apmFeatures, isAMD);
 
     printHeading("L1 Cache Identifiers");
     setFieldWidth(35);

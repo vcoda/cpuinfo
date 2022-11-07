@@ -308,6 +308,38 @@ union x86ProcessorFeaturesEx
     };
 };
 
+/* Advanced power management and power reporting features (Function 80000007h) */
+
+union x86AdvancedPowerManagementFeatures
+{
+    struct
+    {
+        uint32_t reserved: 8;                       // bits 7:0
+        uint32_t invariantTimestampCounter: 1;      // bit 8
+        uint32_t reserved2: 23;                     // bits 31:9
+    };
+
+    struct
+    {
+        uint32_t temperatureSensor: 1;              // bit 0
+        uint32_t frequencyIdControl: 1;             // bit 1
+        uint32_t voltageIdControl: 1;               // bit 2
+        uint32_t thermalTrip: 1;                    // bit 3
+        uint32_t hardwareThermalControl: 1;         // bit 4
+        uint32_t reserved: 1;                       // bit 5
+        uint32_t oneHundredMhzStep: 1;              // bit 6
+        uint32_t hardwarePstateControl: 1;          // bit 7
+        uint32_t invariantTimestampCounter: 1;      // bit 8
+        uint32_t corePerformanceBoost: 1;           // bit 9
+        uint32_t readOnlyEffectiveFrequencyInterface: 1; // bit 10
+        uint32_t processorFeedbackInterface: 1;     // bit 11
+        uint32_t processorPowerReporting: 1;        // bit 12
+        uint32_t reserved2: 19;                     // bits 31:13
+    } amd;
+
+    uint32_t edx;
+};
+
 /* Cache Type */
 
 enum class x86CacheType : uint8_t
@@ -481,6 +513,7 @@ struct x86ProcessorInfo
         x86ThermalPowerManagementFeatures tpmFeatures;
         x86ThermalPowerManagementFeaturesAMD tpmFeaturesAMD;
     };
+    x86AdvancedPowerManagementFeatures apmFeatures;
     union
     {
         x86L1CacheAndTlbFeatures l1Cache;

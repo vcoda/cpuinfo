@@ -109,6 +109,10 @@ x86ProcessorInfo getProcessorInfo()
     {   // Extended L2 Cache Features
         cpuInfo.l2Cache.ecx = cpuIdsEx[6].ecx;
     }
+    if (numIdsEx >= 0x80000007)
+    {   // Advanced power management feature flags
+        cpuInfo.apmFeatures.edx = cpuIdsEx[7].edx;
+    }
     return cpuInfo;
 }
 
@@ -155,3 +159,5 @@ static_assert(sizeof(x86ThermalPowerManagementFeatures) == sizeof(uint32_t) * 3,
     "x86ThermalPowerManagementFeatures structure size mismatch");
 static_assert(sizeof(x86ThermalPowerManagementFeaturesAMD) == sizeof(uint32_t) * 3,
     "x86ThermalPowerManagementFeaturesAMD structure size mismatch");
+static_assert(sizeof(x86AdvancedPowerManagementFeatures) == sizeof(uint32_t),
+    "x86AdvancedPowerManagementFeatures structure size mismatch");
