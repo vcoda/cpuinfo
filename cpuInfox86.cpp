@@ -1,4 +1,5 @@
 #include <intrin.h>
+#include <string.h>
 #include "cpuInfox86.h"
 
 struct CpuId
@@ -112,6 +113,35 @@ x86ProcessorInfo getProcessorInfo()
         cpuInfo.l2Cache.ecx = cpuIdsEx[6].ecx;
     }
     return cpuInfo;
+}
+
+uint32_t getProcessorPhysicalThreadCount() noexcept
+{
+    uint32_t physicalThreadCount = 1;
+    CpuId cpuId;
+    __cpuid(&cpuId.eax, 0);
+    // A twelve-character ASCII string stored in ebx, edx, ecx
+    const int vendor[3] = {cpuId.ebx, cpuId.edx, cpuId.ecx};
+    if (0 == strncmp("AuthenticAMD", (const char *)vendor, sizeof(vendor)))
+    {   // Get highest valid extended ID
+        __cpuid(&cpuId.eax, 0x80000000);
+        const int numIdsEx = cpuId.eax;
+        if (numIdsEx >= 0x80000008)
+        {   // Use extended size identifiers
+            __cpuidex(&cpuId.eax, 0x80000008, 0);
+            physicalThreadCount = (cpuId.ecx & 0x000000FF) + 1;
+        }
+        else
+        {   // Use legacy method
+            __cpuidex(&cpuId.eax, 0x1, 0);
+            physicalThreadCount = (cpuId.ebx & 0x00FF0000) >> 16; // bits 23:16
+        }
+    }
+    else
+    {
+        // TODO: Intel processors
+    }
+    return physicalThreadCount;
 }
 
 static_assert(sizeof(x86ProcessorFeatures) == sizeof(uint32_t) * 2,

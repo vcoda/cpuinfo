@@ -20,3 +20,4 @@ struct ArmProcessorInfo
 /* */
 
 ArmProcessorInfo getProcessorInfo();
+uint32_t getProcessorPhysicalThreadCount() noexcept;

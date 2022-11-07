@@ -493,3 +493,4 @@ struct x86ProcessorInfo
 /* */
 
 x86ProcessorInfo getProcessorInfo();
+uint32_t getProcessorPhysicalThreadCount() noexcept;
