@@ -5,9 +5,9 @@
 /* References:
     1. Intel 64 and IA-32 Architectures Software Developer's Manual
        Volume 2A: Instruction Set Reference
-    2. Software Optimization Guide for AMD Family 17h Processors
-    3. AMD CPUID Specification (September 2010)
-    4. https://en.wikipedia.org/wiki/CPUID */
+    2. AMD64 Architecture Programmer's Manual
+       Volume 3: General-Purpose and System Instructions
+    3. https://en.wikipedia.org/wiki/CPUID */
 
 enum class x86VendorId : uint8_t
 {
