@@ -377,8 +377,6 @@ int main()
     std::cout << "Processor information utility v. 1.0" << std::endl;
 
     const x86ProcessorInfo info = getProcessorInfo();
-    const bool isAMD = (x86VendorId::AMD == info.vendorId);
-
     printHeading("Processor Vendor");
     std::cout << "Vendor: " << info.vendor << std::endl;
     std::cout << "Brandname: " << info.brand << std::endl;
@@ -393,7 +391,8 @@ int main()
 
     printHeading("Processor Features");
     setFieldWidth(35);
-    if (x86VendorId::AMD == info.vendorId)
+    const bool isAMD = (x86VendorId::AMD == info.vendorId);
+    if (isAMD)
         printProcessorFeatures(info.featuresAMD);
     else
         printProcessorFeatures(info.features);
@@ -403,7 +402,7 @@ int main()
 
     printHeading("L1 Cache Identifiers");
     setFieldWidth(35);
-    if (x86VendorId::AMD == info.vendorId)
+    if (isAMD)
         printLevel1CacheAndTlbFeatures(info.l1CacheAMD);
     else
         printLevel1CacheAndTlbFeatures(info.l1Cache);
@@ -431,7 +430,7 @@ int main()
         });
 
     printHeading("Thermal Power Management Features");
-    if (x86VendorId::AMD == info.vendorId)
+    if (isAMD)
         printThermalPowerManagementFeatures(info.tpmFeaturesAMD);
     else
         printThermalPowerManagementFeatures(info.tpmFeatures);
