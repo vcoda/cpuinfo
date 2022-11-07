@@ -238,6 +238,28 @@ void printExtendedProcessorFeatures(const x86ProcessorFeaturesEx& features)
     printLn("Speculative Store Bypass Disable", booleanString(features.speculativeStoreBypassDisable));
 }
 
+void printThermalPowerManagementFeatures(const x86ThermalPowerManagementFeatures& features, bool isAMD)
+{
+    if (isAMD)
+    {
+        printLn("Always Running APIC Timer", booleanString(features.amd.alwaysRunningApicTimer));
+        printLn("Effective Frequency Interface", booleanString(features.amd.effectiveFrequencyInterface));
+    }
+    else
+    {
+        printLn("Digital Thermal Sensor", booleanString(features.digitalThermalSensor));
+        printLn("Intel Turbo Boost", booleanString(features.turboBoost));
+        printLn("Always Running APIC Timer", booleanString(features.alwaysRunningApicTimer));
+        printLn("Power Limit Notification", booleanString(features.powerLimitNotification));
+        printLn("Extended Clock Modulation Duty", booleanString(features.extendedClockModulationDuty));
+        printLn("Package Thermal Management", booleanString(features.packageTermalManagement));
+        printLn("Number of Interrupt Thresholds", booleanString(features.numIterruptThresholds));
+        printLn("Hardware Coordination Feedback", booleanString(features.hardwareCoordinationFeedback));
+        printLn("APERF Counter", booleanString(features.acnt2));
+        printLn("Performance/Energy Bias", booleanString(features.performanceEnergyBias));
+    }
+}
+
 void printAdvancedPowerManagementFeatures(const x86AdvancedPowerManagementFeatures& features, bool isAMD)
 {
     if (isAMD)
@@ -365,26 +387,6 @@ void printLevel2CacheFeatures(const x86L2CacheFeatures& l2Cache)
     printLn("Cache size in kilobytes", l2Cache.cacheSize);
 }
 
-void printThermalPowerManagementFeatures(const x86ThermalPowerManagementFeatures& features)
-{
-    printLn("Digital Thermal Sensor", booleanString(features.digitalThermalSensor));
-    printLn("Intel Turbo Boost", booleanString(features.turboBoost));
-    printLn("Always Running APIC Timer", booleanString(features.alwaysRunningApicTimer));
-    printLn("Power Limit Notification", booleanString(features.powerLimitNotification));
-    printLn("Extended Clock Modulation Duty", booleanString(features.extendedClockModulationDuty));
-    printLn("Package Thermal Management", booleanString(features.packageTermalManagement));
-    printLn("Number of Interrupt Thresholds", booleanString(features.numIterruptThresholds));
-    printLn("Hardware Coordination Feedback", booleanString(features.hardwareCoordinationFeedback));
-    printLn("APERF Counter", booleanString(features.acnt2));
-    printLn("Performance/Energy Bias", booleanString(features.performanceEnergyBias));
-}
-
-void printThermalPowerManagementFeatures(const x86ThermalPowerManagementFeaturesAMD& features)
-{
-    printLn("Always Running APIC Timer", booleanString(features.alwaysRunningApicTimer));
-    printLn("Effective Frequency Interface", booleanString(features.effectiveFrequencyInterface));
-}
-
 void forEachCacheLevel(uint32_t level, const x86ProcessorInfo& info,
     std::function<void(const x86DeterministicCacheInfo& cacheInfo)> cbFn)
 {
@@ -419,9 +421,13 @@ int main()
         printProcessorFeatures(info.featuresAMD);
     else
         printProcessorFeatures(info.features);
+
     printHeading("Extended Processor Features");
     setFieldWidth(50);
     printExtendedProcessorFeatures(info.extendedFeatures);
+
+    printHeading("Thermal Power Management Features");
+    printThermalPowerManagementFeatures(info.tpmFeatures, isAMD);
 
     printHeading("Advanced Power Management Features");
     printAdvancedPowerManagementFeatures(info.apmFeatures, isAMD);
@@ -454,12 +460,6 @@ int main()
         {
             printDeterministicCacheInfo(cache);
         });
-
-    printHeading("Thermal Power Management Features");
-    if (isAMD)
-        printThermalPowerManagementFeatures(info.tpmFeaturesAMD);
-    else
-        printThermalPowerManagementFeatures(info.tpmFeatures);
 
     return 0;
 }

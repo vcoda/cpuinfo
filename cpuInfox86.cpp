@@ -157,7 +157,5 @@ static_assert(sizeof(x86L1CacheAndTlbFeaturesAMD) == sizeof(uint32_t) * 4,
     "x86L1CacheAndTlbFeaturesAMD structure size mismatch");
 static_assert(sizeof(x86ThermalPowerManagementFeatures) == sizeof(uint32_t) * 3,
     "x86ThermalPowerManagementFeatures structure size mismatch");
-static_assert(sizeof(x86ThermalPowerManagementFeaturesAMD) == sizeof(uint32_t) * 3,
-    "x86ThermalPowerManagementFeaturesAMD structure size mismatch");
 static_assert(sizeof(x86AdvancedPowerManagementFeatures) == sizeof(uint32_t),
     "x86AdvancedPowerManagementFeatures structure size mismatch");
