@@ -17,14 +17,13 @@ void printProcessorSignature(const x86ProcessorSignature& signature)
     printLn("Extended family ID", signature.extendedFamilyId);
 }
 
-void printProcessorMiscInfo(const x86ProcessorMiscInfo& info, bool isAMD)
+void printProcessorMiscInfo(const x86ProcessorMiscInfo& info, bool isIntel)
 {
     printLn("Brand ID", info.brandIndex);
     printLn("Cache line flush size", info.cacheLineFlushSize);
-    if (isAMD)
-        printLn("Logical processor count", info.maxAddressableIdsForLogicalProcessors);
-    else // https://stackoverflow.com/questions/24088837/logical-cpu-count-return-16-instead-of-4
+    if (isIntel)
         printLn("Max addressable IDs for logical processors", info.maxAddressableIdsForLogicalProcessors);
+    printLn("Number of physical threads", getProcessorPhysicalThreadCount());
     printLn("Default APIC ID", info.defaultApicId);
 }
 
@@ -390,7 +389,7 @@ int main()
 
     printHeading("Processor Misc Information");
     setFieldWidth(45);
-    printProcessorMiscInfo(info.misc, isAMD);
+    printProcessorMiscInfo(info.misc, (x86VendorId::Intel == info.vendorId));
 
     printHeading("Processor Features");
     setFieldWidth(35);
