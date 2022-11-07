@@ -26,11 +26,8 @@ x86ProcessorInfo getProcessorInfo()
     x86ProcessorInfo cpuInfo = {};
     CpuId cpuId;
     __cpuid(&cpuId.eax, 0);
-    int vendor[3];
     // A twelve-character ASCII string stored in ebx, edx, ecx
-    vendor[0] = cpuId.ebx;
-    vendor[1] = cpuId.edx;
-    vendor[2] = cpuId.ecx;
+    const int vendor[3] = {cpuId.ebx, cpuId.edx, cpuId.ecx};
     memcpy(cpuInfo.vendor, vendor, sizeof(vendor));
     for (auto it = vendorIds; it->vendorId != x86VendorId::Unknown; ++it)
     {
@@ -84,7 +81,7 @@ x86ProcessorInfo getProcessorInfo()
         cpuInfo.extendedFeatures.ecx = cpuIds[7].ecx;
         cpuInfo.extendedFeatures.edx = cpuIds[7].edx;
     }
-     __cpuid(&cpuId.eax, 0x80000000); // Get highest valid extended ID
+    __cpuid(&cpuId.eax, 0x80000000); // Get highest valid extended ID
     const int numIdsEx = cpuId.eax;
     std::vector<CpuId> cpuIdsEx;
     for (int i = 0x80000000; i <= numIdsEx; ++i)
