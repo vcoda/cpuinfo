@@ -39,8 +39,8 @@ x86ProcessorInfo getProcessorInfo()
     }
     const bool isAMD = (x86VendorId::AMD == cpuInfo.vendorId);
     const int numIds = cpuId.eax;
-    std::vector<CpuId> cpuIds(numIds);
-    for (int i = 0; i < numIds; ++i)
+    std::vector<CpuId> cpuIds(numIds + 1);
+    for (int i = 0; i <= numIds; ++i)
         __cpuidex(&cpuIds[i].eax, i, 0);
     if (numIds >= 1)
     {   // Signature of a CPU
