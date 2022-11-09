@@ -141,20 +141,7 @@ uint32_t getProcessorPhysicalThreadCount() noexcept
     // A twelve-character ASCII string stored in ebx, edx, ecx
     const int ascii[3] = {cpuId.ebx, cpuId.edx, cpuId.ecx};
     const char *vendor = (const char *)ascii;
-    if (0 == strncmp("AuthenticAMD", vendor, sizeof(ascii)))
-    {   // Get highest valid extended ID
-        __cpuid(&cpuId.eax, 0x80000000);
-        const int numIdsEx = cpuId.eax;
-        if (numIdsEx >= 0x80000008)
-        {   // Use extended size identifiers
-            __cpuidex(&cpuId.eax, 0x80000008, 0);
-            physicalThreadCount = (cpuId.ecx & 0x000000FF) + 1;
-        } else
-        {   // Use legacy method
-            __cpuidex(&cpuId.eax, 0x1, 0);
-            physicalThreadCount = (cpuId.ebx & 0x00FF0000) >> 16; // bits 23:16
-        }
-    } else if (0 == strncmp("GenuineIntel", vendor, sizeof(ascii)))
+    if (0 == strncmp("GenuineIntel", vendor, sizeof(ascii)))
     {   // Get highest topology leaf
         const int numIds = cpuId.eax;
         const int eax = numIds >= 0x1F ? 0x1F : (numIds > 0xB ? 0xB : 0);
@@ -170,6 +157,19 @@ uint32_t getProcessorPhysicalThreadCount() noexcept
             }
             if (topology.numLogicalProcessors)
                 physicalThreadCount = topology.numLogicalProcessors;
+        }
+    } else if (0 == strncmp("AuthenticAMD", vendor, sizeof(ascii)))
+    {   // Get highest valid extended ID
+        __cpuid(&cpuId.eax, 0x80000000);
+        const int numIdsEx = cpuId.eax;
+        if (numIdsEx >= 0x80000008)
+        {   // Use extended size identifiers
+            __cpuidex(&cpuId.eax, 0x80000008, 0);
+            physicalThreadCount = (cpuId.ecx & 0x000000FF) + 1;
+        } else
+        {   // Use legacy method
+            __cpuidex(&cpuId.eax, 0x1, 0);
+            physicalThreadCount = (cpuId.ebx & 0x00FF0000) >> 16; // bits 23:16
         }
     }
     return physicalThreadCount;
