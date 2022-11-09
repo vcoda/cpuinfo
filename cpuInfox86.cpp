@@ -116,14 +116,32 @@ x86ProcessorInfo getProcessorInfo()
     return cpuInfo;
 }
 
+enum LevelType : uint8_t
+{
+    Invalid, SMT, Core, Module, Tile, Die
+};
+
+struct CpuExtTopology
+{
+    uint32_t bitsToShiftRightX2ApicId: 5;
+    uint32_t reserved: 27;
+    uint32_t numLogicalProcessors: 16;
+    uint32_t reserved2: 16;
+    uint32_t levelNumber: 8;
+    uint32_t levelType: 8;
+    uint32_t reserved3: 16;
+    uint32_t x2ApicId: 32;
+};
+
 uint32_t getProcessorPhysicalThreadCount() noexcept
 {
     uint32_t physicalThreadCount = 1;
     CpuId cpuId;
     __cpuid(&cpuId.eax, 0);
     // A twelve-character ASCII string stored in ebx, edx, ecx
-    const int vendor[3] = {cpuId.ebx, cpuId.edx, cpuId.ecx};
-    if (0 == strncmp("AuthenticAMD", (const char *)vendor, sizeof(vendor)))
+    const int ascii[3] = {cpuId.ebx, cpuId.edx, cpuId.ecx};
+    const char *vendor = (const char *)ascii;
+    if (0 == strncmp("AuthenticAMD", vendor, sizeof(ascii)))
     {   // Get highest valid extended ID
         __cpuid(&cpuId.eax, 0x80000000);
         const int numIdsEx = cpuId.eax;
@@ -131,16 +149,28 @@ uint32_t getProcessorPhysicalThreadCount() noexcept
         {   // Use extended size identifiers
             __cpuidex(&cpuId.eax, 0x80000008, 0);
             physicalThreadCount = (cpuId.ecx & 0x000000FF) + 1;
-        }
-        else
+        } else
         {   // Use legacy method
             __cpuidex(&cpuId.eax, 0x1, 0);
             physicalThreadCount = (cpuId.ebx & 0x00FF0000) >> 16; // bits 23:16
         }
-    }
-    else
-    {
-        // TODO: Intel processors
+    } else if (0 == strncmp("GenuineIntel", vendor, sizeof(ascii)))
+    {   // Get highest topology leaf
+        const int numIds = cpuId.eax;
+        const int eax = numIds >= 0x1F ? 0x1F : (numIds > 0xB ? 0xB : 0);
+        if (eax > 0)
+        {   // Enumerate topology levels
+            CpuExtTopology topology = {0};
+            int level = 0;
+            while (topology.levelType != LevelType::Core)
+            {   // SMT related to physical cores, Core related to logical ones
+                __cpuidex((int *)&topology, eax, level++);
+                if (!topology.numLogicalProcessors)
+                    break;
+            }
+            if (topology.numLogicalProcessors)
+                physicalThreadCount = topology.numLogicalProcessors;
+        }
     }
     return physicalThreadCount;
 }
@@ -159,3 +189,5 @@ static_assert(sizeof(x86ThermalPowerManagementFeatures) == sizeof(uint32_t) * 3,
     "x86ThermalPowerManagementFeatures structure size mismatch");
 static_assert(sizeof(x86AdvancedPowerManagementFeatures) == sizeof(uint32_t),
     "x86AdvancedPowerManagementFeatures structure size mismatch");
+static_assert(sizeof(CpuExtTopology) == sizeof(CpuId),
+    "Topology structure size mismatch");
