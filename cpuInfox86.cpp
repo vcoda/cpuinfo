@@ -38,6 +38,7 @@ x86ProcessorInfo getProcessorInfo()
         }
     }
     const bool isAMD = (x86VendorId::AMD == cpuInfo.vendorId);
+    const bool isIntel = (x86VendorId::Intel == cpuInfo.vendorId);
     const int numIds = cpuId.eax;
     std::vector<CpuId> cpuIds(numIds + 1);
     for (int i = 0; i <= numIds; ++i)
@@ -80,6 +81,12 @@ x86ProcessorInfo getProcessorInfo()
         cpuInfo.extendedFeatures.ebx = cpuIds[7].ebx;
         cpuInfo.extendedFeatures.ecx = cpuIds[7].ecx;
         cpuInfo.extendedFeatures.edx = cpuIds[7].edx;
+    }
+    if (numIds >= 0x16 && isIntel)
+    {   // Processor frequency information
+        cpuInfo.frequency.eax = cpuIds[0x16].eax;
+        cpuInfo.frequency.ebx = cpuIds[0x16].ebx;
+        cpuInfo.frequency.ecx = cpuIds[0x16].ecx;
     }
     __cpuid(&cpuId.eax, 0x80000000); // Get highest valid extended ID
     const int numIdsEx = cpuId.eax;

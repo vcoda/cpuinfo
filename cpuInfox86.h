@@ -48,6 +48,26 @@ union x86ProcessorMiscInfo
     uint32_t ebx;
 };
 
+/* Intel processor frequency information (Function 00000016h). */
+
+union x86ProcessorFrequency
+{
+    struct
+    {
+        uint32_t processorBaseFrequency: 16;    // bits 15:0
+        uint32_t reserved3: 16;                 // bits 31:16
+        uint32_t maxFrequency: 16;              // bits 15:0
+        uint32_t reserved2: 16;                 // bits 31:16
+        uint32_t busFrequency: 16;              // bits 15:0
+        uint32_t reserved: 16;                  // bits 31:16
+    };
+
+    struct
+    {
+        uint32_t eax, ebx, ecx;
+    };
+};
+
 /* The processor feature flags are manufacturer specific
    but usually the Intel values are used by other manufacturers
    for the sake of compatibility. */
@@ -495,6 +515,7 @@ struct x86ProcessorInfo
     x86VendorId vendorId;
     x86ProcessorSignature signature;
     x86ProcessorMiscInfo misc;
+    x86ProcessorFrequency frequency;
     x86ProcessorFeatures features;
     x86ProcessorFeaturesAMD featuresAMD;
     x86ProcessorFeaturesEx extendedFeatures;
