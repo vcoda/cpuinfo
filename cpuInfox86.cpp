@@ -116,7 +116,7 @@ x86ProcessorInfo getProcessorInfo()
     return cpuInfo;
 }
 
-enum LevelType : uint8_t
+enum TopologyLevelType : uint8_t
 {
     Invalid, SMT, Core, Module, Tile, Die
 };
@@ -149,7 +149,7 @@ uint32_t getProcessorPhysicalThreadCount() noexcept
         {   // Enumerate topology levels
             CpuExtTopology topology = {0};
             int level = 0;
-            while (topology.levelType != LevelType::Core)
+            while (topology.levelType != TopologyLevelType::Core)
             {   // SMT related to physical cores, Core related to logical ones
                 __cpuidex((int *)&topology, eax, level++);
                 if (!topology.numLogicalProcessors)
