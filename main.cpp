@@ -27,6 +27,13 @@ void printProcessorMiscInfo(const x86ProcessorMiscInfo& info, bool isIntel)
     printLn("Default APIC ID", info.defaultApicId);
 }
 
+void printProcessorFrequency(const x86ProcessorFrequency& frequency)
+{
+    printLn("Processor base frequency (MHz)", frequency.processorBaseFrequency);
+    printLn("Maximum frequency (MHz)", frequency.maxFrequency);
+    printLn("Bus frequency (MHz)", frequency.busFrequency);
+}
+
 void printProcessorFeatures(const x86ProcessorFeatures& features)
 {
     printLn("FPU", booleanString(features.floatingPointUnit));
@@ -409,6 +416,10 @@ int main()
     printHeading("Processor Signature");
     setFieldWidth(25);
     printProcessorSignature(info.signature);
+
+    printHeading("Processor Frequency");
+    setFieldWidth(35);
+    printProcessorFrequency(info.frequency);
 
     printHeading("Processor Misc Information");
     setFieldWidth(45);
