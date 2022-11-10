@@ -32,7 +32,8 @@ void printProcessorFrequency(const x86ProcessorFrequency& frequency)
     printLn("Processor base frequency (MHz)", frequency.processorBaseFrequency);
     printLn("Maximum frequency (MHz)", frequency.maxFrequency);
     printLn("Bus frequency (MHz)", frequency.busFrequency);
-    const uint64_t processorFrequency = getProcessorFrequency();
+    constexpr uint64_t oneSecondInNanoseconds = 1000000000ull;
+    const uint64_t processorFrequency = getProcessorFrequency(oneSecondInNanoseconds / 10ull);
     printLn("Measured CPU frequency (clocks)", processorFrequency);
 }
 
