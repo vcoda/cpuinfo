@@ -4,6 +4,13 @@
 #include <string.h>
 #include "cpuInfox86.h"
 
+#define CPUID_VENDOR_INTEL "GenuineIntel"
+#define CPUID_VENDOR_AMD "AuthenticAMD"
+#define CPUID_VENDOR_VIA "VIA VIA VIA "
+#define CPUID_VENDOR_HYGON "HygonGenuine"
+#define CPUID_VENDOR_ZHAOXIN "  Shanghai  "
+#define CPUID_VENDOR_UNKNOWN nullptr
+
 struct CpuId
 {
     int eax, ebx, ecx, edx;
@@ -15,15 +22,20 @@ struct CpuVendor
     x86VendorId vendorId;
 };
 
+static bool cpuVendorCompare(const int vendor[3], const char *string) noexcept
+{
+    return 0 == strncmp((const char *)vendor, string, sizeof(int) * 3);
+}
+
 x86ProcessorInfo getProcessorInfo()
 {
     const CpuVendor vendorIds[] = {
-        {"GenuineIntel", x86VendorId::Intel},
-        {"AuthenticAMD", x86VendorId::AMD},
-        {"VIA VIA VIA ", x86VendorId::VIA},
-        {"HygonGenuine", x86VendorId::Hygon},
-        {"  Shanghai  ", x86VendorId::Zhaoxin},
-        {nullptr, x86VendorId::Unknown}
+        {CPUID_VENDOR_INTEL, x86VendorId::Intel},
+        {CPUID_VENDOR_AMD, x86VendorId::AMD},
+        {CPUID_VENDOR_VIA, x86VendorId::VIA},
+        {CPUID_VENDOR_HYGON, x86VendorId::Hygon},
+        {CPUID_VENDOR_ZHAOXIN, x86VendorId::Zhaoxin},
+        {CPUID_VENDOR_UNKNOWN, x86VendorId::Unknown}
     };
     x86ProcessorInfo cpuInfo = {};
     CpuId cpuId;
@@ -33,7 +45,7 @@ x86ProcessorInfo getProcessorInfo()
     memcpy(cpuInfo.vendor, vendor, sizeof(vendor));
     for (auto it = vendorIds; it->vendorId != x86VendorId::Unknown; ++it)
     {
-        if (0 == strcmp(cpuInfo.vendor, it->name))
+        if (cpuVendorCompare(vendor, it->name))
         {
             cpuInfo.vendorId = it->vendorId;
             break;
@@ -148,9 +160,8 @@ uint32_t getProcessorPhysicalThreadCount() noexcept
     CpuId cpuId;
     __cpuid(&cpuId.eax, 0);
     // A twelve-character ASCII string stored in ebx, edx, ecx
-    const int ascii[3] = {cpuId.ebx, cpuId.edx, cpuId.ecx};
-    const char *vendor = (const char *)ascii;
-    if (0 == strncmp("GenuineIntel", vendor, sizeof(ascii)))
+    const int vendor[3] = {cpuId.ebx, cpuId.edx, cpuId.ecx};
+    if (cpuVendorCompare(vendor, CPUID_VENDOR_INTEL))
     {   // Get highest topology leaf
         const int numIds = cpuId.eax;
         const int eax = numIds >= 0x1F ? 0x1F : (numIds > 0xB ? 0xB : 0);
@@ -167,7 +178,7 @@ uint32_t getProcessorPhysicalThreadCount() noexcept
             if (topology.numLogicalProcessors)
                 physicalThreadCount = topology.numLogicalProcessors;
         }
-    } else if (0 == strncmp("AuthenticAMD", vendor, sizeof(ascii)))
+    } else if (cpuVendorCompare(vendor, CPUID_VENDOR_AMD))
     {   // Get highest valid extended ID
         __cpuid(&cpuId.eax, 0x80000000);
         const int numIdsEx = cpuId.eax;
