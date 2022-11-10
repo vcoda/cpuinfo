@@ -197,6 +197,9 @@ uint32_t getProcessorPhysicalThreadCount() noexcept
 
 uint64_t waitNanoseconds(uint64_t ns) noexcept;
 
+#define TSC_BIT           0b10000
+#define INVARIANT_TSC_BIT 0b100000000
+
 uint64_t getProcessorFrequency(uint64_t period /* 1000000000 */) noexcept
 {
     CpuId cpuId[2] = {};
@@ -206,8 +209,8 @@ uint64_t getProcessorFrequency(uint64_t period /* 1000000000 */) noexcept
     __cpuid(&cpuId[1].eax, 0x80000000); // Highest valid extended ID
     if (cpuId[1].eax >= 0x80000007)
         __cpuid(&cpuId[1].eax, 0x80000007); // Advanced power management feature flags
-    if ((cpuId[0].edx & 0b10000) && // tsc
-        (cpuId[1].edx & 0b100000000)) // invariant tsc
+    if ((cpuId[0].edx & TSC_BIT) &&
+        (cpuId[1].edx & INVARIANT_TSC_BIT))
     {
         uint64_t begin = __rdtsc();
         {   // Wait precisely as much as possible on current platform
