@@ -184,7 +184,9 @@ uint32_t getProcessorPhysicalThreadCount() noexcept
     return physicalThreadCount;
 }
 
-uint64_t getProcessorFrequency() noexcept
+uint64_t waitNanoseconds(uint64_t ns) noexcept;
+
+uint64_t getProcessorFrequency(uint64_t period /* 1000000000 */) noexcept
 {
     CpuId cpuId[2] = {};
     __cpuid(&cpuId[0].eax, 0);
@@ -193,22 +195,20 @@ uint64_t getProcessorFrequency() noexcept
     __cpuid(&cpuId[1].eax, 0x80000000); // Highest valid extended ID
     if (cpuId[1].eax >= 0x80000007)
         __cpuid(&cpuId[1].eax, 0x80000007); // Advanced power management feature flags
-    uint64_t cpuFrequency = 0ull;
     if ((cpuId[0].edx & 0b10000) && // tsc
         (cpuId[1].edx & 0b100000000)) // invariant tsc
     {
-         __cpuid(&cpuId[0].eax, 0);
         uint64_t begin = __rdtsc();
-        {   // 500 ms is the only reliable interval on Windows
-            // TODO: is there another way to sleep exactly N ms?
-            constexpr std::chrono::milliseconds time(500);
-            std::this_thread::sleep_for(time);
+        {   // Wait precisely as much as possible on current platform
+            waitNanoseconds(period);
+            __cpuid(&cpuId[0].eax, 0); // Insert barrier
         }
-        __cpuid(&cpuId[0].eax, 0);
         uint64_t end = __rdtsc();
-        cpuFrequency = (end - begin) << 1;
+        double multiplier = round(1e+9/period);
+        uint64_t frequency = (uint64_t)((end - begin) * multiplier);
+        return frequency;
     }
-    return cpuFrequency;
+    return 0ull;
 }
 
 static_assert(sizeof(x86ProcessorFeatures) == sizeof(uint32_t) * 2,
