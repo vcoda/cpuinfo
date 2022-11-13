@@ -154,6 +154,11 @@ struct CpuExtTopology
     uint32_t x2ApicId: 32;
 };
 
+#define CMP_LEGACY_BIT      (1 << 1)
+#define HTT_BIT             (1 << 28)
+#define TSC_BIT             (1 << 4)
+#define INVARIANT_TSC_BIT   (1 << 8)
+
 uint32_t getProcessorPhysicalThreadCount() noexcept
 {
     uint32_t physicalThreadCount = 1;
@@ -186,19 +191,24 @@ uint32_t getProcessorPhysicalThreadCount() noexcept
         {   // Use extended size identifiers
             __cpuidex(&cpuId.eax, 0x80000008, 0);
             physicalThreadCount = (cpuId.ecx & 0x000000FF) + 1;
-        } else
-        {   // Use legacy method
-            __cpuidex(&cpuId.eax, 0x1, 0);
-            physicalThreadCount = (cpuId.ebx & 0x00FF0000) >> 16; // bits 23:16
+        } else if (numIdsEx >= 0x80000001)
+        {   // Check that legacy method is supported
+            __cpuid(&cpuId.eax, 0x80000001);
+            const bool coreMultiProcessingLegacyMode = cpuId.ecx & CMP_LEGACY_BIT;
+            if (coreMultiProcessingLegacyMode)
+            {   // When HTT = 1 and CmpLegacy = 1, LogicalProcessorCount represents
+                // the number of logical processors per package
+                __cpuid(&cpuId.eax, 0x1);
+                const bool hyperThreading = cpuId.edx & HTT_BIT;
+                if (hyperThreading)
+                    physicalThreadCount = (cpuId.ebx & 0x00FF0000) >> 16; // bits 23:16
+            }
         }
     }
     return physicalThreadCount;
 }
 
 uint64_t waitNanoseconds(uint64_t ns) noexcept;
-
-#define TSC_BIT           0b10000
-#define INVARIANT_TSC_BIT 0b100000000
 
 uint64_t getProcessorFrequency(uint64_t period /* 1000000000 */) noexcept
 {
