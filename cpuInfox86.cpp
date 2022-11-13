@@ -221,12 +221,13 @@ uint64_t getProcessorFrequency(uint64_t period /* 1000000000 */) noexcept
         (cpuId[1].edx & INVARIANT_TSC_BIT))
     {
         uint64_t begin = __rdtsc();
-        {   // Wait precisely as much as possible on current platform
-            waitNanoseconds(period);
+        {   // Wait for specified period and store the actual wait period
+            period = waitNanoseconds(period);
             __cpuid(&cpuId[0].eax, 0); // Insert barrier
         }
         uint64_t end = __rdtsc();
-        double multiplier = round(1e+9/period);
+        // Adjust multiplier according to returned wait period
+        double multiplier = 1e+9/period;
         uint64_t frequency = (uint64_t)((end - begin) * multiplier);
         return frequency;
     }
