@@ -90,14 +90,14 @@ x86ProcessorInfo getProcessorInfo()
     {   // Use fallback for frequency information
     #ifdef _WIN32
         HKEY key = NULL;
-        if (ERROR_SUCCESS == RegOpenKeyExA(HKEY_LOCAL_MACHINE,
+        if (RegOpenKeyExA(HKEY_LOCAL_MACHINE,
             "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
-            0, KEY_READ, &key))
+            0, KEY_READ, &key) == ERROR_SUCCESS)
         {   // Read processor base frequency from registry
-            DWORD bufferSize = sizeof(DWORD);
-            RegQueryValueExA(key, "~MHz", nullptr, nullptr,
-                (LPBYTE)&cpuInfo.frequency.eax,
-                &bufferSize);
+            DWORD type = REG_DWORD;
+            DWORD size = sizeof(DWORD);
+            RegQueryValueExA(key, "~MHz", nullptr,
+                &type, (LPBYTE)&cpuInfo.frequency.eax, &size);
         }
     #else
     #endif // _WIN32
