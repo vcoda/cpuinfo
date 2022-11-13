@@ -33,7 +33,8 @@ void printProcessorFrequency(const x86ProcessorFrequency& frequency)
     printLn("Maximum frequency (MHz)", frequency.maxFrequency);
     printLn("Bus frequency (MHz)", frequency.busFrequency);
     constexpr uint64_t oneSecondInNanoseconds = 1000000000ull;
-    const uint64_t processorFrequency = getProcessorFrequency(oneSecondInNanoseconds / 10ull);
+    // 100-200 ms is enough for precise measurement, 10-20 ms results in deviation
+    const uint64_t processorFrequency = getProcessorFrequency(oneSecondInNanoseconds/10ull);
     printLn("Measured CPU frequency (clocks)", processorFrequency);
 }
 
