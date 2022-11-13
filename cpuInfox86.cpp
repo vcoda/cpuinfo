@@ -161,7 +161,7 @@ struct CpuExtTopology
 
 uint32_t getProcessorPhysicalThreadCount() noexcept
 {
-    uint32_t physicalThreadCount = 1;
+    uint32_t physicalThreadCount = 0;
     CpuId cpuId;
     __cpuid(&cpuId.eax, 0);
     if (cpuidIsVendor(CPUID_VENDOR_INTEL, cpuId))
@@ -202,6 +202,26 @@ uint32_t getProcessorPhysicalThreadCount() noexcept
                     physicalThreadCount = (cpuId.ebx & 0x00FF0000) >> 16; // bits 23:16
             }
         }
+    }
+    if (!physicalThreadCount)
+    {   // Fallback method
+    #ifdef _WIN32
+        HKEY key = NULL;
+        if (RegOpenKeyExA(HKEY_LOCAL_MACHINE,
+            "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment",
+            0, KEY_READ, &key) == ERROR_SUCCESS)
+        {   // Read number of logical processors from registry
+            DWORD type = REG_SZ;
+            char val[5] = {'\0'};
+            DWORD size = sizeof(val);
+            RegQueryValueExA(key, "NUMBER_OF_PROCESSORS", nullptr,
+                &type, (LPBYTE)val, &size);
+            physicalThreadCount = atoi(val);
+        }
+    #else
+        // TODO: Unix
+        physicalThreadCount = 1;
+    #endif // _WIN32
     }
     return physicalThreadCount;
 }
