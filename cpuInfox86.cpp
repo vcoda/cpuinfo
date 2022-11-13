@@ -1,22 +1,9 @@
-#include <intrin.h>
-#include <string.h>
 #ifdef _WIN32
 #include <windows.h>
 #pragma comment(lib, "advapi32.lib")
 #endif
 #include "cpuInfox86.h"
-
-#define CPUID_VENDOR_INTEL "GenuineIntel"
-#define CPUID_VENDOR_AMD "AuthenticAMD"
-#define CPUID_VENDOR_VIA "VIA VIA VIA "
-#define CPUID_VENDOR_HYGON "HygonGenuine"
-#define CPUID_VENDOR_ZHAOXIN "  Shanghai  "
-#define CPUID_VENDOR_UNKNOWN nullptr
-
-struct CpuId
-{
-    int eax, ebx, ecx, edx;
-};
+#include "cpuid.h"
 
 struct CpuVendor
 {
@@ -24,37 +11,33 @@ struct CpuVendor
     x86VendorId vendorId;
 };
 
-static bool cpuVendorCompare(const int vendor[3], const char *string) noexcept
-{
-    return 0 == strncmp((const char *)vendor, string, sizeof(int) * 3);
-}
+static const CpuVendor vendorIds[] = {
+    {CPUID_VENDOR_INTEL, x86VendorId::Intel},
+    {CPUID_VENDOR_AMD, x86VendorId::AMD},
+    {CPUID_VENDOR_VIA, x86VendorId::VIA},
+    {CPUID_VENDOR_HYGON, x86VendorId::Hygon},
+    {CPUID_VENDOR_ZHAOXIN, x86VendorId::Zhaoxin},
+    {CPUID_VENDOR_UNKNOWN, x86VendorId::Unknown}
+};
 
 x86ProcessorInfo getProcessorInfo()
 {
-    const CpuVendor vendorIds[] = {
-        {CPUID_VENDOR_INTEL, x86VendorId::Intel},
-        {CPUID_VENDOR_AMD, x86VendorId::AMD},
-        {CPUID_VENDOR_VIA, x86VendorId::VIA},
-        {CPUID_VENDOR_HYGON, x86VendorId::Hygon},
-        {CPUID_VENDOR_ZHAOXIN, x86VendorId::Zhaoxin},
-        {CPUID_VENDOR_UNKNOWN, x86VendorId::Unknown}
-    };
     x86ProcessorInfo cpuInfo = {};
     CpuId cpuId;
     __cpuid(&cpuId.eax, 0);
     // A twelve-character ASCII string stored in ebx, edx, ecx
     const int vendor[3] = {cpuId.ebx, cpuId.edx, cpuId.ecx};
     memcpy(cpuInfo.vendor, vendor, sizeof(vendor));
-    for (auto it = vendorIds; it->vendorId != x86VendorId::Unknown; ++it)
+    for (const auto& it: vendorIds)
     {
-        if (cpuVendorCompare(vendor, it->name))
+        if (cpuidIsVendor(it.name, cpuId))
         {
-            cpuInfo.vendorId = it->vendorId;
+            cpuInfo.vendorId = it.vendorId;
             break;
         }
     }
-    const bool isAMD = (x86VendorId::AMD == cpuInfo.vendorId);
     const bool isIntel = (x86VendorId::Intel == cpuInfo.vendorId);
+    const bool isAMD = (x86VendorId::AMD == cpuInfo.vendorId);
     const int numIds = cpuId.eax;
     std::vector<CpuId> cpuIds(numIds + 1);
     for (int i = 0; i <= numIds; ++i)
@@ -68,13 +51,13 @@ x86ProcessorInfo getProcessorInfo()
         cpuInfo.features.edx = cpuIds[1].edx;
         cpuInfo.features.ecx = cpuIds[1].ecx;
     }
-    if (numIds >= 4 && !isAMD)
+    if (numIds >= 0x4 && isIntel)
     {   // Intel deterministic cache parameters
         int ecx = 0;
         while (true)
         {
             x86DeterministicCacheInfo cacheInfo;
-            __cpuidex(cacheInfo.reg, 4, ecx++);
+            __cpuidex(cacheInfo.reg, 0x4, ecx++);
             if (!cacheInfo.cacheType)
                break;
             cacheInfo.maxAddressableIdsForLogicalProcessors += 1;
@@ -86,17 +69,17 @@ x86ProcessorInfo getProcessorInfo()
             cpuInfo.cacheInfos.push_back(cacheInfo);
         }
     }
-    if (numIds >= 6)
+    if (numIds >= 0x6)
     {   // Thermal power management feature flags
-        cpuInfo.tpmFeatures.eax = cpuIds[6].eax;
-        cpuInfo.tpmFeatures.ebx = cpuIds[6].ebx;
-        cpuInfo.tpmFeatures.ecx = cpuIds[6].ecx;
+        cpuInfo.tpmFeatures.eax = cpuIds[0x6].eax;
+        cpuInfo.tpmFeatures.ebx = cpuIds[0x6].ebx;
+        cpuInfo.tpmFeatures.ecx = cpuIds[0x6].ecx;
     }
-    if (numIds >= 7)
+    if (numIds >= 0x7)
     {   // Extended feature flags
-        cpuInfo.extendedFeatures.ebx = cpuIds[7].ebx;
-        cpuInfo.extendedFeatures.ecx = cpuIds[7].ecx;
-        cpuInfo.extendedFeatures.edx = cpuIds[7].edx;
+        cpuInfo.extendedFeatures.ebx = cpuIds[0x7].ebx;
+        cpuInfo.extendedFeatures.ecx = cpuIds[0x7].ecx;
+        cpuInfo.extendedFeatures.edx = cpuIds[0x7].edx;
     }
     if (numIds >= 0x16 && isIntel)
     {   // Processor frequency information
@@ -119,37 +102,37 @@ x86ProcessorInfo getProcessorInfo()
     #else
     #endif // _WIN32
     }
-    __cpuid(&cpuId.eax, 0x80000000); // Get highest valid extended ID
+    __cpuid(&cpuId.eax, CPUID_EXTENDED_ID); // Get highest valid extended ID
     const int numIdsEx = cpuId.eax;
     std::vector<CpuId> cpuIdsEx;
-    for (int i = 0x80000000; i <= numIdsEx; ++i)
+    for (int id = CPUID_EXTENDED_ID; id <= numIdsEx; ++id)
     {
-        __cpuidex(&cpuId.eax, i, 0);
+        __cpuid(&cpuId.eax, id);
         cpuIdsEx.push_back(cpuId);
     }
-    if ((numIdsEx >= 0x80000001) && isAMD)
+    if ((numIdsEx >= CPUID_EXTENDED_ID + 0x1) && isAMD)
     {   // AMD processor extended feature flags
-        cpuInfo.featuresAMD.edx = cpuIdsEx[1].edx;
-        cpuInfo.featuresAMD.ecx = cpuIdsEx[1].ecx;
+        cpuInfo.featuresAMD.edx = cpuIdsEx[0x1].edx;
+        cpuInfo.featuresAMD.ecx = cpuIdsEx[0x1].ecx;
     }
-    if (numIdsEx >= 0x80000004)
+    if (numIdsEx >= CPUID_EXTENDED_ID + 0x4)
     {   // Interpret processor brand string if supported
-        memcpy(cpuInfo.brand, &cpuIdsEx[2], sizeof(CpuId) * 3);
+        memcpy(cpuInfo.brand, &cpuIdsEx[0x2], sizeof(CpuId) * 3); // 0x2, 0x3, 0x4
     }
-    if ((numIdsEx >= 0x80000005) && isAMD)
+    if ((numIdsEx >= CPUID_EXTENDED_ID + 0x5) && isAMD)
     {   // L1 Cache and TLB Identifiers
-        cpuInfo.l1CacheAMD.eax = cpuIdsEx[5].eax;
-        cpuInfo.l1CacheAMD.ebx = cpuIdsEx[5].ebx;
-        cpuInfo.l1CacheAMD.ecx = cpuIdsEx[5].ecx;
-        cpuInfo.l1CacheAMD.edx = cpuIdsEx[5].edx;
+        cpuInfo.l1CacheAMD.eax = cpuIdsEx[0x5].eax;
+        cpuInfo.l1CacheAMD.ebx = cpuIdsEx[0x5].ebx;
+        cpuInfo.l1CacheAMD.ecx = cpuIdsEx[0x5].ecx;
+        cpuInfo.l1CacheAMD.edx = cpuIdsEx[0x5].edx;
     }
-    if (numIdsEx >= 0x80000006)
+    if (numIdsEx >= CPUID_EXTENDED_ID + 0x6)
     {   // Extended L2 Cache Features
-        cpuInfo.l2Cache.ecx = cpuIdsEx[6].ecx;
+        cpuInfo.l2Cache.ecx = cpuIdsEx[0x6].ecx;
     }
-    if (numIdsEx >= 0x80000007)
+    if (numIdsEx >= CPUID_EXTENDED_ID + 0x7)
     {   // Advanced power management feature flags
-        cpuInfo.apmFeatures.edx = cpuIdsEx[7].edx;
+        cpuInfo.apmFeatures.edx = cpuIdsEx[0x7].edx;
     }
     return cpuInfo;
 }
@@ -181,36 +164,34 @@ uint32_t getProcessorPhysicalThreadCount() noexcept
     uint32_t physicalThreadCount = 1;
     CpuId cpuId;
     __cpuid(&cpuId.eax, 0);
-    // A twelve-character ASCII string stored in ebx, edx, ecx
-    const int vendor[3] = {cpuId.ebx, cpuId.edx, cpuId.ecx};
-    if (cpuVendorCompare(vendor, CPUID_VENDOR_INTEL))
+    if (cpuidIsVendor(CPUID_VENDOR_INTEL, cpuId))
     {   // Get highest topology leaf
         const int numIds = cpuId.eax;
-        const int eax = numIds >= 0x1F ? 0x1F : (numIds > 0xB ? 0xB : 0);
-        if (eax > 0)
+        const int id = numIds >= 0x1F ? 0x1F : (numIds > 0xB ? 0xB : 0);
+        if (id > 0)
         {   // Enumerate topology levels
-            CpuExtTopology topology = {0};
+            CpuExtTopology topology = {};
             int level = 0;
             while (topology.levelType != TopologyLevelType::Core)
             {   // SMT related to physical cores, Core related to logical ones
-                __cpuidex((int *)&topology, eax, level++);
+                __cpuidex((int *)&topology, id, level++);
                 if (!topology.numLogicalProcessors)
                     break;
             }
             if (topology.numLogicalProcessors)
                 physicalThreadCount = topology.numLogicalProcessors;
         }
-    } else if (cpuVendorCompare(vendor, CPUID_VENDOR_AMD))
+    } else if (cpuidIsVendor(CPUID_VENDOR_AMD, cpuId))
     {   // Get highest valid extended ID
-        __cpuid(&cpuId.eax, 0x80000000);
+        __cpuid(&cpuId.eax, CPUID_EXTENDED_ID);
         const int numIdsEx = cpuId.eax;
-        if (numIdsEx >= 0x80000008)
+        if (numIdsEx >= CPUID_EXTENDED_ID + 0x8)
         {   // Use extended size identifiers
-            __cpuidex(&cpuId.eax, 0x80000008, 0);
+            __cpuid(&cpuId.eax, CPUID_EXTENDED_ID + 0x8);
             physicalThreadCount = (cpuId.ecx & 0x000000FF) + 1;
-        } else if (numIdsEx >= 0x80000001)
+        } else if (numIdsEx >= CPUID_EXTENDED_ID + 0x1)
         {   // Check that legacy method is supported
-            __cpuid(&cpuId.eax, 0x80000001);
+            __cpuid(&cpuId.eax, CPUID_EXTENDED_ID + 0x1);
             const bool coreMultiProcessingLegacyMode = cpuId.ecx & CMP_LEGACY_BIT;
             if (coreMultiProcessingLegacyMode)
             {   // When HTT = 1 and CmpLegacy = 1, LogicalProcessorCount represents
@@ -233,9 +214,9 @@ uint64_t getProcessorFrequency(uint64_t period /* 1000000000 */) noexcept
     __cpuid(&cpuId[0].eax, 0);
     if (cpuId[0].eax >= 0x1)
         __cpuid(&cpuId[0].eax, 0x1); // Processor feature flags
-    __cpuid(&cpuId[1].eax, 0x80000000); // Highest valid extended ID
-    if (cpuId[1].eax >= 0x80000007)
-        __cpuid(&cpuId[1].eax, 0x80000007); // Advanced power management feature flags
+    __cpuid(&cpuId[1].eax, CPUID_EXTENDED_ID); // Get highest valid extended ID
+    if (cpuId[1].eax >= CPUID_EXTENDED_ID + 0x7)
+        __cpuid(&cpuId[1].eax, CPUID_EXTENDED_ID + 0x7); // Advanced power management feature flags
     if ((cpuId[0].edx & TSC_BIT) &&
         (cpuId[1].edx & INVARIANT_TSC_BIT))
     {
