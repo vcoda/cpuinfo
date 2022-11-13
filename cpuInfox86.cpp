@@ -2,6 +2,10 @@
 #include <thread>
 #include <intrin.h>
 #include <string.h>
+#ifdef _WIN32
+#include <windows.h>
+#pragma comment(lib, "advapi32.lib")
+#endif
 #include "cpuInfox86.h"
 
 #define CPUID_VENDOR_INTEL "GenuineIntel"
@@ -101,6 +105,21 @@ x86ProcessorInfo getProcessorInfo()
         cpuInfo.frequency.eax = cpuIds[0x16].eax;
         cpuInfo.frequency.ebx = cpuIds[0x16].ebx;
         cpuInfo.frequency.ecx = cpuIds[0x16].ecx;
+    } else
+    {   // Use fallback for frequency information
+    #ifdef _WIN32
+        HKEY key = NULL;
+        if (ERROR_SUCCESS == RegOpenKeyExA(HKEY_LOCAL_MACHINE,
+            "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
+            0, KEY_READ, &key))
+        {   // Read processor base frequency from registry
+            DWORD bufferSize = sizeof(DWORD);
+            RegQueryValueExA(key, "~MHz", nullptr, nullptr,
+                (LPBYTE)&cpuInfo.frequency.eax,
+                &bufferSize);
+        }
+    #else
+    #endif // _WIN32
     }
     __cpuid(&cpuId.eax, 0x80000000); // Get highest valid extended ID
     const int numIdsEx = cpuId.eax;
