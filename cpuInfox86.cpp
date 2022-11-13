@@ -1,5 +1,3 @@
-#include <chrono>
-#include <thread>
 #include <intrin.h>
 #include <string.h>
 #ifdef _WIN32
