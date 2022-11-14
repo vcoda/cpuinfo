@@ -7,13 +7,20 @@
 #include <time.h>
 #endif
 
+static uint64_t frequency = 0ull;
+
+void waitInit() noexcept
+{
+#ifdef _WIN32
+    QueryPerformanceFrequency((LARGE_INTEGER *)&frequency);
+#endif
+}
+
 uint64_t waitNanoseconds(uint64_t ns) noexcept
 {
     constexpr uint64_t second = 1000000000ull;
 #ifdef _WIN32
-    uint64_t frequency;
-    QueryPerformanceFrequency((LARGE_INTEGER *)&frequency);
-    uint64_t dt = (uint64_t)std::round(ns/1e+9 * frequency);
+    const uint64_t dt = (uint64_t)std::round(ns/1e+9 * frequency);
     uint64_t start;
     QueryPerformanceCounter((LARGE_INTEGER *)&start);
     uint64_t end = start + dt, now;

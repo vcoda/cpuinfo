@@ -2,6 +2,8 @@
 #include "cpuInfox86.h"
 #include "printUtils.h"
 
+void waitInit() noexcept;
+
 std::string booleanString(uint32_t value)
 {
     return value ? "Yes" : "No";
@@ -412,6 +414,7 @@ int main()
 {
     std::cout << "Processor information utility v. 1.0" << std::endl;
 
+    waitInit();
     const x86ProcessorInfo info = getProcessorInfo();
     printHeading("Processor Vendor");
     std::cout << "Vendor: " << info.vendor << std::endl;
